@@ -1,0 +1,342 @@
+\documentclass[compress, svgnames]{beamer}
+\usetheme{Frankfurt}
+\usecolortheme{dolphin}
+\usefonttheme{structureitalicserif}
+\setbeamercovered{invisible} 
+\setbeamertemplate{navigation symbols}{}
+\setbeamerfont{enumerate item}{size=\Large}
+%\setbeamertemplate{enumerate items}[ball]
+\definecolor{links}{HTML}{2A1B81}
+\hypersetup{colorlinks,linkcolor=gray,urlcolor=links}
+
+%\setbeamercolor{section in head/foot}{fg=white,bg=green!20!black}
+%\setbeamercolor{subsection in head/foot}{fg=black,bg=green!30}
+
+\setbeamercolor*{palette quaternary}{fg=white,bg=green!10!black}
+\setbeamercolor*{palette tertiary}{fg=white,bg=green!17!black}
+\setbeamercolor*{palette secondary}{fg=white,bg=green!23!black}
+\setbeamercolor*{palette primary}{use=structure,fg=white,bg=green!30!black}
+
+\setbeamercolor{block title}{bg=blue!30,fg=black}
+
+\usefoottemplate{\vbox{%
+\tinycolouredline{green!30!black}%
+{\color{white}\textbf{\insertshortauthor\hfill%
+\insertshortinstitute}}%
+\tinycolouredline{green!10!black}%
+{\color{white}\textbf{\insertshorttitle}\hfill}%
+}}
+
+	   
+\usepackage{etex}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{natbib}
+
+
+\renewcommand{\bibsection}{\subsubsection*{\bibname } }
+\renewcommand{\bibfont}{\scriptsize}
+\bibpunct{(}{)}{;}{a}{}{,}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Continue numbering across slides
+\newcounter{saveenumi}
+\newcommand{\seti}{\setcounter{saveenumi}{\value{enumi}}}
+\newcommand{\conti}{\setcounter{enumi}{\value{saveenumi}}}
+\newcommand{\flip}{\addtocounter{framenumber}{+1}}
+\resetcounteronoverlays{saveenumi}
+
+\newcommand{\bl}[1]{\textcolor{blue}{#1}}
+\newcommand{\bbl}[1]{\textbf{\textcolor{blue}{#1}}}
+\newcommand{\org}[1]{\textbf{\textcolor{orange}{#1}}}
+\newcommand{\bgr}[1]{\textbf{\textcolor{ForestGreen}{#1}}}
+\newcommand{\gr}[1]{\textcolor{ForestGreen}{#1}}
+\newcommand{\red}[1]{\textbf{\textcolor{red}{#1}}}
+\newcommand{\imp}[1]{\textbf{\textcolor{gold4}{#1}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title[{\makebox[.95\paperwidth]{Reproducible Research using R\hfill%
+       \insertframenumber/\inserttotalframenumber}}]{Emphasizing Reproducible Research by Teaching Data Analysis using R} 
+	   
+\author{Robin Donatello}
+\institute[rdonatello@csuchico.edu] 
+{
+  Department of Mathematics and Statistics \\
+  CSU, Chico \\
+   \vspace{2mm}
+   CELT Conference: 2016
+}
+
+\date[]{\small{October 7th, 2016}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+{
+\usefoottemplate{\vbox{%
+\tinycolouredline{green!30!black}%
+{\color{white}\textbf{\insertshortauthor\hfill%
+\insertshortinstitute}}%
+\tinycolouredline{green!10!black}%
+{\color{white}\textbf{Reproducible Research using R \hfill}}%
+}}
+
+\begin{frame} 
+	\titlepage 	
+\end{frame}
+
+\begin{frame} 
+	\tableofcontents 
+\end{frame}
+}
+
+\addtocounter{framenumber}{-2}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{What?}
+\subsection{Participant Learning Outcomes}
+
+\begin{frame}	\frametitle{In an hour I hope you...}
+
+\begin{itemize}
+  \item Understand the importance of teaching reproducible research (RR) to 
+        undergraduates early in their career. 
+  \item Walk away with a proof of concept reproducible data analysis document using R and Markdown.
+  \item Believe that this is an achievable outcome by undergraduates
+  \item Start to think about ways to incorporate RR into your classroom (I can help!!)
+\end{itemize}
+
+Download slides and code files from my GitHub repository: \url{https://github.com/norcalbiostat/RR_CELT2016}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Why?}
+\subsection{Analysis Process - in class vs real life}
+\begin{frame}	\frametitle{Analysis process - as taught}
+
+\begin{itemize}
+  \item Statistical data analysis is a critical component in a scientific education program
+  \item Often taught as a side topic
+    \begin{itemize}
+      \item something a scientist does once
+      \item using some external program like Excel or Minitab
+      \item then simply writes the results into their manuscript. 
+      \item Boom. Done. 
+    \end{itemize}
+\end{itemize}
+
+\vspace{1cm}
+
+You know it's not that straight forward. 
+
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}	\frametitle{Analysis process - Real life}
+
+\begin{itemize}
+  \item Data exploration and analysis often much more involved.
+  \item No small amount of data preparation and sometimes high level computing processes to analyze the data (e.g Genome Wide Association Studies (GWAS)). 
+  \item Analysis can morph and grow, or run into glitches
+  \begin{itemize}
+    \item "Oh i'm sorry, that data you have is wrong. Here's the real data (version 5)"
+    \item "Let's add in data from this other study". 
+    \item Your indicators got reversed: (e.g. control is marked as intervention)
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}	\frametitle{Analysis process - Real life}
+
+\begin{itemize}
+  \item Reviewer comments
+  \begin{itemize}
+    \item "You should use measure B instead of A. "
+    \item "How did you account for missing data here?" 
+    \item "Did you look at the relationship between X \& Y before making this conclusion?"
+  \end{itemize}
+  \item 5 years post-manuscript questions
+  \begin{itemize}
+    \item "How did you calculate this specific number?" 
+    \item "Let's revisit this and...."
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Teaching Reproducible Research}
+\begin{frame}	\frametitle{Teaching Reproducible Research}
+
+\begin{itemize}
+  \item Encourages best practices, 
+  \item Provides the skills and tools to integrate statistical data analysis into this research pipeline.  
+  \item Provides an explicit record of the data management and analysis process. 
+  \item Makes collaboration with other researchers as easy as passing them 2 files: 
+  report code and data.
+  \begin{itemize}
+    \item They compile the report code on their machine using the data provided and produce 
+    the *exact* same report document as you did. 
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}	\frametitle{Additional references for motivation to conduct RR}
+
+\begin{itemize}
+  \item Special articles in Nature that discusses the need to share code and reproducibility in the sciences. \url{http://www.nature.com/news/reproducibility-1.17552}
+  \item The spreadsheet error and austerity as discussed on The Colbert Report. Moral of this story: ask for the data and question results that look too good to be true. Even students can find serious errors! \url{http://thecolbertreport.cc.com/videos/kbgnf0/austerity-s-spreadsheet-error---thomas-herndon}. 
+  \item The cancer research scandal at Duke. Simple and not so simple erorrs, combined with some fraudulent cover-up puts cancer patient's lives at risk. The 60 minutes story: \url{https://www.youtube.com/watch?v=eV9dcAGaVU8}
+\end{itemize}  
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Why R + R Studio?}
+\begin{frame}	\frametitle{Why R?}
+
+\begin{itemize}
+  \item Free (Not a trivial benefit) Gives students a skill they can use outside of school.
+  \item It's one of the fastest growing statistical languages used in the Natural Sciences 
+  \item Integration of R with LaTeX (this presentation), Markdown, C++,javascript, d3, github.... 
+  \item Specifically - automate the analysis into a single document that can be run with a click of a button. 
+  \item Everything is user-contributed "package" based. Don't reinvent the weheel, Google it!
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}	\frametitle{Why R Studio?}
+
+\begin{itemize}
+  \item Integrated Development Environment (IDE), not "just" a GUI
+  \item One button \LaTeX compilation
+  \item Four windows provides organization, syntax highlighting, tab-complete...
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{How?}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}	\frametitle{}
+
+This all sounds great, but *HOW* do we do it? 
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Analysis Process}
+
+\begin{frame}	\frametitle{Analysis Pipeline}
+A typical analysis pipeline consists of
+\begin{enumerate}
+  \item Reading the data into the statistical software program (getting the data)
+  \item Preparing your data for analysis  (cleaning and transforming)
+  \item Univariate exploratory analysis including summary tables and visualizations (describing the data)
+  \item Analysis of the research question of interests using an appropriate statistical procedure (e.g. multiple regression, ANOVA, hierarchical modeling or logistic regression)
+  \item Interpreting and reporting the results. (summary table, model results)
+\end{enumerate}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}	\frametitle{Intro to R and Markdown via R Studio}
+
+Let's see how that analysis pipeline looks as a reproducible document. 
+
+\begin{itemize}
+  \item Pre-configured laptops passed around
+  \item Code files all available at: \url{https://github.com/norcalbiostat/RR_CELT2016}
+\end{itemize}
+
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}	\frametitle{Cleanup}
+
+But.. that output looks kinda crappy. 
+
+At the very least, it's not *that* professional looking. 
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}	\frametitle{Cleanup}
+Some nicer examples
+
+\begin{itemize}
+  \item Chico State 2016 Data science Interest Survey
+  \item Pretty Homework: http://rpubs.com/gin
+  \item Lecture notes (Linear Regression): http://rpubs.com/mdlama 
+\end{itemize}
+
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{What Next?}
+\subsection{How To Learn R}
+
+\begin{frame}	\frametitle{Where can I send my students (or myself) to learn R? }
+
+\begin{itemize}
+\item Google: "How to learn R" -- thousands of options!
+\item Good option: Data Camp (free Intro to R course) 
+\item Campus Option: R Bootcamp - Department of Mathematics and Statistics. 
+  \begin{itemize}
+    \item 1 unit CR/NC - meets for 15 hours total, typically over the span of 3 weeks. 
+    \item 3 Saturdays from 12-4 / one week over intersession
+  \end{itemize}
+\item Campus Option: Certificate in Data Science
+  \begin{itemize}
+    \item Joint program MATH/CSCI
+    \item Intro to Data Science (CSCI 398 SP17)
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}	\frametitle{Additional Resources to learn R and Markdown}
+
+\begin{itemize}
+  \item Coursera: \url{https://www.coursera.org/learn/reproducible-research}
+  \item Excerpt from the Data Scientist's Toolbox 
+  \url{https://www.youtube.com/watch?v=Nc0CS0nX-M4}
+  \item R Markdown tutorial by Roger Peng \url{https://www.youtube.com/watch?v=DNS7i2m4sB0}
+  \item R Markdown tutorial by R Studio \url{http://rmarkdown.rstudio.com/}
+  \item Workshop for SUNY Geneseo MATH 341 students to learn how to write a professional report using Sweave, LaTeX, and R.
+  \url{https://www.youtube.com/watch?v=CNJ3ygl_xa0}
+  \item knitr: Elegant, flexible and fast dynamic report generation with R \url{http://yihui.name/knitr/}
+\end{itemize}
+
+
+\end{frame}
+
+\end{document}

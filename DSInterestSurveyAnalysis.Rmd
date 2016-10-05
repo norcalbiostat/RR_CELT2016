@@ -1,0 +1,285 @@
+---
+title: "Analysis of the Data Science Interest Survey"
+author: "Robin Donatello"
+date: "Last compiled on: `r format(Sys.time(), '%b %d, %Y')` "
+output: rmarkdown::tufte_handout
+---
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(rmarkdown); library(googlesheets);library(knitr)
+library(dplyr); library(ggplot2)
+library(tm);library(wordcloud); library(stringr)
+opts_chunk$set(warning=FALSE, message=FALSE, echo=FALSE)
+'%ni%' <- Negate('%in%')
+```
+
+
+```{r}
+# Get data
+gs_auth(token="googlesheets_token.rds")
+sheet_info <- gs_title("Data Science (Responses)")
+ds_raw <- sheet_info %>% gs_read()
+names(ds_raw) <- c("timestamp", "heard_of", "how_aware", "role", "major", "interests", "career")
+ds_raw$major <- tolower(ds_raw$major)
+ds_raw$role[ds_raw$role=="Undergraduate student"] <- "UG Student"
+ds_raw$role[ds_raw$role=="Graduate student"] <- "GD Student"
+```
+
+# Introduction
+
+In Spring 2016 the Data Science Working Group administered an internet survey[^dssurvey] to assess the level of knowledge and interest in Data Science in the CSUC campus community. This report contains a brief exploratory analysis of the results of this survey. 
+
+
+## Participants
+```{r}
+n.role <- table(ds_raw$role)
+ds_raw$role <- paste(ds_raw$role, " (n=", n.role[factor(ds_raw$role)], ")", sep="")
+```
+
+The majority (n=81, 59%) of participants were undergraduate students, one quarter (n=33, 24%)
+faculty, with the remaining responses from staff (n=9), graduate students (n=8) and administrators (n=6)
+were all less than 10% each (Figure 1). 
+```{r, fig.margin = TRUE, fig.cap = "Campus Roles of Respondents"}
+test = ds_raw %>% group_by(role) %>%
+  summarise(count=n()) %>%
+  mutate(pct=round(count/sum(count)*100,1), 
+         clr = cut(pct, c(0, 10, 30, 100)))
+
+par(mar=c(0,0,0,0), oma=c(0,0,0,0))
+
+ggplot(test, aes(x=reorder(role, count), y=count, fill=clr)) + geom_bar(stat="identity") + 
+  ylim(c(0, 100)) + xlab("") + ylab("Count of Responses") + 
+  scale_fill_brewer(guide=FALSE) + coord_flip()  + theme_bw() + 
+geom_text(data=test, aes(label=paste0(pct,"%"), y=count+15), size=4)
+```
+
+```{r}
+ds_raw$dept <- "Other"
+ds_raw$dept[grepl("bio|env|chem|geos",ds_raw$major)] <- "Biol/Env/Chem/Geos"
+ds_raw$dept[grepl("nurs|nutr|health|phys|ag",ds_raw$major)] <- "Ag/Nursing/Nutrition/Physics"
+ds_raw$dept[grepl("computer|csci|enginee|mmem",ds_raw$major)] <- "ECC"
+ds_raw$dept[grepl("financ|account|managem|business|mktg|mis|mins",ds_raw$major)] <- "COB"
+ds_raw$dept[grepl("math|stat",ds_raw$major)] <- "Math/Stat"
+
+n.dept <- table(ds_raw$dept)
+ds_raw$dept <- paste(ds_raw$dept, " (n=", n.dept[factor(ds_raw$dept)], ")", sep="")
+
+depttab = ds_raw %>% group_by(dept) %>%
+  summarise(count=n()) %>%
+  mutate(pct=round(count/sum(count)*100,1), 
+         clr = cut(pct, c(0, 5, 10, 15, 20, 30))) %>%
+  arrange(-count)
+
+```
+
+The College of Natural Science had the highest response rate with 
+(`r sum(depttab$count[1:3])`, `r sum(depttab$pct[1:3])`%) responses. 
+The College of Business and College of Engineering, Computer Science and Construction Management were 
+similar at (`r depttab$count[5]`, `r depttab$pct[5]`%) each (Figure 2). Common campus affiliations for
+the "Other" category include the Library, Institutional Research, the College of BSS, and Schools and Departments of Education.
+
+```{r, fig.margin = TRUE, fig.cap = "Department/College Affiliation"}
+par(mar=c(0,0,0,0), oma=c(0,0,0,0))
+ggplot(depttab, aes(x=reorder(dept, count) , y=count, fill=clr)) + geom_bar(stat="identity") + 
+  ylim(c(0, 50)) + xlab("") + ylab("Count of Responses") + 
+  scale_fill_brewer(guide=FALSE) + theme_bw() + coord_flip() + 
+  geom_text(data=depttab, aes(label=paste0(pct,"%"), y=count+8), size=4) 
+```
+
+# Awareness
+```{r}
+ho <- table(ds_raw$heard_of)
+pt <- round(prop.table(ho)*100,1)
+```
+As of `r format(Sys.time(), '%b %d, %Y')`, `r NROW(ds_raw)` people have responded to the DS Interest survey. 
+Of these, the majority `r ho[2]` (`r pt[2]`%) reported prior awareness of Data Science, Business Analytics, 
+Bioinformatics and/or Big Data prior to this survey. All Administration and Faculty who responded were aware of the Data Science field. Undergraduates were the most likely to have never heard of it before (Figure 3). 
+
+```{r,fig.width = 10, fig.height = 3, fig.align='center', fig.cap = "Awareness of Data Science at CSUC by Campus Role"}
+ds_raw$student <- ifelse(grepl("Student", ds_raw$role), "Student", "Other")
+
+heard = ds_raw %>% group_by(role, heard_of) %>%
+  summarise(count=n()) %>%
+  mutate(pct=round(count/sum(count)*100,1)) %>%
+  filter(heard_of == "Yes")
+
+colours <- brewer.pal(name="Blues", n=nlevels(factor(ds_raw$role)))
+names(colours) <- rev(levels(factor(ds_raw$role)))
+
+par(mar=c(0,0,0,0), oma=c(0,0,0,0))
+ggplot(heard, aes(x=role, y=pct, fill=role)) + geom_bar(stat="identity", position="dodge") +
+  xlab("Aware of Data Science") + ylab("Percent")+ theme_bw() + scale_x_discrete(breaks=NULL) + 
+  scale_fill_manual(values=colours, guide_legend(title="Campus Role")) + 
+  geom_text(data=heard, aes(label=paste0(pct, "%"), y=pct-10), size=5)
+
+     
+```
+
+
+The common pathways of knowledge were from reading technical news on the Internet, through discussions at school with their professors and/or classmates, and from their own research. 
+
+
+```{r, fig.margin = TRUE, fig.width = 5, fig.height = 5, fig.cap="Source of Prior Awareness", fig.align='center'}
+par(mar=c(0,0,0,0), oma=c(0,0,0,0))
+
+aware <- Corpus(VectorSource(ds_raw$how_aware))
+aware <- tm_map(aware, tolower)
+aware <- tm_map(aware, removePunctuation)
+aware <- tm_map(aware, removeNumbers)
+aware <- tm_map(aware, removeWords, stopwords("english"))
+aware <- tm_map(aware, PlainTextDocument)
+aware <- tm_map(aware, removeWords, c("heard", "dont", "part", "data", "field", "also", "mentioned")) 
+dtm <- TermDocumentMatrix(aware)
+
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+wordcloud(words = d$word, freq = d$freq, 
+          min.freq = 3 , fixed.asp = TRUE, 
+          max.words=200, random.order=FALSE, rot.per = .3,
+          colors=brewer.pal(8, "Dark2"))
+
+```
+
+# Course level interest
+```{r}
+ds_raw$none     <- grepl("I am not ",ds_raw$interests)
+ds_raw$morecomp <- grepl("More comp",ds_raw$interests)
+ds_raw$few      <- grepl("1 or 2 ",ds_raw$interests)
+ds_raw$minor    <- grepl("A minor ",ds_raw$interests)
+ds_raw$major2   <- grepl("A major ",ds_raw$interests)
+ds_raw$UGcert   <- grepl("An Undergraduate ",ds_raw$interests)
+ds_raw$GCcert   <- grepl("A 1 year ",ds_raw$interests)
+ds_raw$MS       <- grepl("A Masters ",ds_raw$interests)
+ds_raw$teach    <- grepl("I would ",ds_raw$interests)
+ds_raw$other    <- FALSE
+
+ds_raw$int2 <- ds_raw$interests
+ds_raw$int2 <- gsub("I am not interested in Data Science or any of it's related fields|More computationally or statistically rigorous courses in my current field of study.|1 or 2 additional classes in Data Science|A minor in Data Science|A major in Data Science|An Undergraduate certificate in Data Science|A 1 year post undergraduate certificate in Data Science|A Masters Degree in Data Science|I would consider teaching a class in Data Science Related topics in my expertise area.", "", ds_raw$int2)
+ds_raw$other    <- grepl("[[:alpha:]]", ds_raw$int2) 
+
+test <- ds_raw %>% select(role, dept, student, none:other)
+
+library(foreach)
+cr <- foreach(i = 4:13, .combine=rbind) %do% {
+  b <- cbind(test[,1:3], int = colnames(test[,i]), test[,i])
+  names(b)[5] <- "yesno"
+  return(b)
+}
+
+cr$Int <- rep(c("Not Interested","More Rigerous","1-2 more classes","Minor", "Major", 
+                "UG Cert", "GD Cert", "Masters", "Teach", "Other"), each=137)
+```
+
+The survey asked the respondants the following question: 
+"If available at Chico State, I would consider pursuing (check all that apply)". 
+The allowed responses were:
+
+* Not Interested: _I am not interested in Data Science or any of it's related fields_
+* More Rigerous: _More computationally or statistically rigorous courses in my current field of study_
+* 1-2 more classes: _1 or 2 additional classes in Data Science_
+* Minor: _A minor in Data Science_
+* Major: _A major in Data Science_
+* UG Cert: _An Undergraduate certificate in Data Science_
+* GD Cert: _A 1 year post undergraduate certificate in Data Science_
+* Masters: _A Masters Degree in Data Science_
+* Teach: _I would consider teaching a class in Data Science Related topics in my expertise area_
+* Other: _Other_ (Free text response was captured)
+  
+
+## Interest level by Campus Role. 
+These responses are first examined by the type of role the respondent holds on campus (Figure 5).
+
+```{r, fig.width = 12, fig.height = 4, fig.fullwidth = TRUE, fig.align='center', fig.cap = "Future Interest by Campus Role"}
+int.byrole <- cr %>% group_by(role, Int) %>% 
+                summarise(n=sum(yesno), pct=round(mean(yesno)*100,1)) %>%
+                mutate(clr = cut(pct, c(0, 10, 20, 30, 40, 50, 60, 70)), 
+                       lab = ifelse(pct>0, paste0(pct,"%"), ""))
+
+int.byrole$Int <- factor(int.byrole$Int, levels= c("Not Interested","More Rigerous","1-2 more classes",
+                                                   "Minor", "Major", "UG Cert", "GD Cert", "Masters", "Teach", "Other"))
+
+ggplot(int.byrole, aes(x=Int , y=n, fill=clr)) + geom_bar(stat="identity") + 
+  ylim(c(0, 50)) + xlab("") + ylab("Count of Responses") + 
+  scale_fill_brewer(guide=FALSE) + facet_wrap(~role, ncol=5) + 
+  theme_bw() + coord_flip() + 
+  geom_text(data=int.byrole, aes(label=lab, y=n+8), size=4)
+```
+
+* Faculty, staff and both graduate and undergraduate students said they would be interested in taking 1-2 courses. 
+* Support for more computationally and statistically rigerous courses was seen from Faculty and undergraduate students. 
+* A third of Administrators responded said they would be interested in a Masters Program; half reported 
+  interest in a Graduate level certificate.  
+* Further support for a Data Science program at Chico State can be seen by the fact that more than half
+  of the Administrators and faculty reported being willing to teach Data Science topics. 
+
+## Student Interest level by Department. 
+Looking at students who had some level of interest, the majority of respondents would take 
+a few more courses to a minor. Those from the COllege of Business are in favor of some more rigerous
+courses, while half of the student respondents from the college of ECC and the Math & Statistics 
+department would also consider getting a minor in Data Science. 
+
+
+
+```{r, fig.width = 12, fig.height = 5, fig.fullwidth = TRUE, fig.align='center', fig.cap = "Student Interest by Department"}
+int.dept <- cr %>%  filter(Int %in% c("1-2 more classes", "More Rigerous", "UG Cert", "Major", "Minor") & 
+                             student == "Student" & !grepl("Other", dept))%>% group_by(dept, Int) %>% 
+                summarise(n=sum(yesno), pct=round(mean(yesno)*100,1)) %>%
+                mutate(clr = cut(pct, c(0, 10, 20, 30, 40, 50, 60, 70, 80)), 
+                       lab = ifelse(pct>0, paste0(pct,"%"), ""))
+                
+ggplot(int.dept, aes(x=Int , y=n, fill=clr)) + geom_bar(stat="identity") + 
+  ylim(c(0, 30)) + xlab("") + ylab("Count of Responses") + 
+  scale_fill_brewer(guide=FALSE) + facet_wrap(~dept, ncol=3) + 
+  theme_bw() + coord_flip() + 
+  geom_text(data=int.dept, aes(label=lab, y=n+8), size=4)
+```
+
+
+# Career 
+Lastly, respondents were asked _If applicable, explain your interest in pursuing a career in Data Science or it's related fields._. Responses from the students only were examined and it appears as if there is a general
+trend in that they understand Data Science is an important addition to their research field. 
+
+```{r, fig.width = 5, fig.height = 5, fig.margin=TRUE,  fig.cap="Career Interest", fig.align='center'}
+par(mar=c(0,0,0,0), oma=c(0,0,0,0))
+
+students <- ds_raw %>% filter(student=="Student")
+career <- Corpus(VectorSource(students$career))
+career <- tm_map(career, tolower)
+career <- tm_map(career, removePunctuation)
+career <- tm_map(career, removeNumbers)
+career <- tm_map(career, removeWords, stopwords("english"))
+career <- tm_map(career, PlainTextDocument)
+career <- tm_map(career, removeWords, c("data", "science", "thus")) 
+dtm <- TermDocumentMatrix(career)
+
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+wordcloud(words = d$word, freq = d$freq, 
+          min.freq = 2 , fixed.asp = TRUE, 
+          max.words=200, random.order=FALSE, rot.per = .3,
+          colors=brewer.pal(8, "Dark2"))
+
+```
+
+
+[^dssurvey]: http://goo.gl/forms/FmGTZVpc8n
+
+
+
+```{r}
+cscistat <- ds_raw %>% filter(student=="Student" & grepl("Math|ECC", dept)) %>% 
+                       select(major, minor:MS) %>% 
+                       rowwise() %>%
+                       mutate(anyinterest = sum(minor, major2, GCcert, MS))
+
+
+table(cscistat$anyinterest>0)
+```
+
+
+
+
