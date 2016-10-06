@@ -1,0 +1,114 @@
+---
+title: "Getting to know my audience"
+author: "An example of literate programming"
+date: "October 7, 2016"
+output: 
+  html_document: 
+    fig_caption: yes
+    highlight: pygments
+    theme: cerulean
+---
+
+
+```{r, warning=FALSE, message=FALSE}
+# Load libraries
+library(googlesheets)
+library(dplyr);library(ggplot2)
+library(knitr);library(xtable)
+opts_chunk$set(warning=FALSE, message=FALSE, echo=FALSE, fig.align='center') 
+
+```
+
+# Introduction
+This report analyzes [survey data](https://goo.gl/forms/y7V2IvC60fEujjRf1) collected 
+at the Emphasizing Reproducible Research by Teaching Data Analysis with R Presentation 
+at the CELT 2016 Conference. After setting up proper authorization tokens, we connect 
+directly to Google Sheets to download the data. 
+```{r}
+gs_auth(token="googlesheets_token.rds")
+sheet_info <- gs_title("CELT_Responses")
+raw <- sheet_info %>% gs_read()
+```
+
+Looking at the raw data, we see that the names of the data frame are set
+to the question titles, which makes analysis very difficult to deal with. 
+We rename these variable names something easier to manage. 
+```{r}
+names(raw) <- c("timestamp", "college", "years_teaching", "years_chico", 
+                "R_research", "R_teach", "IWantR")
+```
+
+# Description of the data set
+
+## College
+
+```{r}
+tc <- table(raw$college)
+mx <- which(tc==max(tc))
+tp <- paste0(tc, " (", round(prop.table(tc)*100,1), ")%")
+kable(t(tc))
+```
+
+```{r college, fig.height=4, fig.width=8, fig.cap="College Representation"}
+ggplot(raw, aes(x=college)) + geom_bar()
+```
+
+Figure 1 shows that the majority of the audience (n=`r tp[mx]`) is from the college of `r names(tc)[mx]`.
+
+## Usage of R
+```{r}
+rr <- table(raw$R_teach, raw$R_research)
+rr.p <- round(prop.table(rr)*100,1)
+rr.r <- round(prop.table(rr, margin=1)*100,1)
+rr.c <- round(prop.table(rr, margin=2)*100,1)
+rr.a <- addmargins(rr)
+kable(rr.a)
+```
+
+There are `r NROW(raw)-rr[1,1]` (`r 100-rr.p[1,1]`%) people in the audience who use 
+R for their teaching or research. Of the `r rr.a[3,2]` who use it for research, `r rr[1,2]` (`r rr.c[1,2]`%) 
+don't use it for teaching. 
+
+```{r}
+ggplot(raw, aes(x=R_teach, fill=R_research)) + geom_bar(position=position_dodge())
+```
+
+## Years teaching
+The correlation between years teaching overall and years living in Chico is `r round(cor(raw$years_chico, raw$years_teaching),2)`. The plot below demonstrates that this relationship is _positive_. 
+
+```{r}
+ggplot(raw, aes(x=years_chico, y=years_teaching)) + geom_point() + 
+  geom_smooth() + xlab("Years living in Chico") + ylab("Years teaching")
+```
+
+Does this relationship differ by college? 
+```{r}
+ggplot(raw, aes(x=years_chico, y=years_teaching, col=college)) + geom_point() + 
+  geom_smooth(se=FALSE, method='lm') + xlab("Years living in Chico") + ylab("Years teaching")
+```
+
+Now the big question: Is the use of R in research or teaching a relative new thing? 
+```{r}
+ggplot(raw, aes(y=years_teaching, x=R_teach)) + geom_boxplot() + 
+  facet_wrap(~R_research) + 
+  ggtitle("Distribution of years teaching grouped by whether or not R is taught, 
+          stratified by if R is used in research")
+```
+
+An ANOVA was used to test if there is a significant difference in the average
+years teaching for those who teach, or do research in R. 
+```{r}
+mod1 <- anova(lm(years_teaching ~ R_teach + R_research, data=raw))
+pv <- c(unlist(mod1)[13:14])
+sw <- ifelse(pv < 0.05, "significant", "non-significant")
+```
+
+```{r}
+kable(mod1, digits=2)
+```
+
+The results show that there is a `r sw[1]` difference in the average age
+of those who teach R and those who do not, and a `r sw[2]` difference
+between those who do research with R and those who do not. 
+
+

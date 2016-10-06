@@ -96,26 +96,6 @@
 
 \addtocounter{framenumber}{-2}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Who}
-\subsection{Who are we?}
-
-\begin{frame}	\frametitle{Who are we?}
-
-Me: Robin Donatello - Biostatistician by training
-
-\vspace{1cm}
-
-My amazing student assistants: 
-\begin{itemize}
-  \item Aldine Ruble - Statistics Major, Econ Minor
-  \item Jongwoo Choi- Statistics and General Math Major
-  \item Ricardo Aguilera - Statistics Major, Data Science Minor (unofficial)
-\end{itemize}
-
-
-\end{frame}
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -265,10 +245,6 @@ This all sounds great, but *HOW* do we do it?
 \vspace{1cm}
 
 Demonstration time!
-
-\vspace{1cm}
-
-Few loaner laptops available -- please share with a neighbor.
 
 \end{frame}
 
