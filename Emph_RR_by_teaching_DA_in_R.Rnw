@@ -240,11 +240,18 @@ You know it's not that straight forward.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}	\frametitle{}
 
+\centering
 This all sounds great, but *HOW* do we do it? 
 
-\vspace{1cm}
+\vspace{0.5cm}
 
 Demonstration time!
+
+\vspace{1cm}
+The SOUTH (my left, your right) side of the room go to this link and answer a few questions. 
+\vspace{1cm}
+
+\LARGE{https://goo.gl/forms/y7V2IvC60fEujjRf1}
 
 \end{frame}
 
@@ -271,7 +278,6 @@ A typical analysis pipeline consists of
 Let's see how that analysis pipeline looks as a reproducible document. 
 
 \begin{itemize}
-  \item Pre-configured laptops passed around
   \item Code files all available at: \url{https://github.com/norcalbiostat/RR_CELT2016}
 \end{itemize}
 
@@ -280,10 +286,29 @@ Let's see how that analysis pipeline looks as a reproducible document.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}	\frametitle{}
+
+\centering
+
+\includegraphics[scale=0.9]{hyperbole}
+  
+NORTH side, your turn!
+\Large{https://goo.gl/forms/y7V2IvC60fEujjRf1}
+  
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{frame}	\frametitle{Cleanup}
 
-But.. that output looks kinda crappy. 
+Woo. Fancy!
+
+\vspace{1cm}
+
+But but... that output looks kinda crappy. 
+
+\vspace{1cm}
 
 At the very least, it's not *that* professional looking. 
 
@@ -344,5 +369,16 @@ Some nicer examples
 
 
 \end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}	\frametitle{Any Questions?}
+
+\centering
+
+\Huge{Thank you}
+
+\end{frame}
+
 
 \end{document}
