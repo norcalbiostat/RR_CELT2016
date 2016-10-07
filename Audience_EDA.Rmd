@@ -2,15 +2,16 @@
 title: "Getting to know my audience"
 author: "An example of literate programming"
 date: "October 7, 2016"
-output: 
-  html_document: 
+output:
+  pdf_document: default
+  html_document:
     fig_caption: yes
     highlight: pygments
     theme: cerulean
 ---
 
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 # Load libraries
 library(googlesheets)
 library(dplyr);library(ggplot2)
@@ -29,6 +30,13 @@ gs_auth(token="googlesheets_token.rds")
 sheet_info <- gs_title("CELT_Responses")
 raw <- sheet_info %>% gs_read()
 ```
+
+```{r, eval=FALSE}
+# Or read it in from the disk
+library(readxl)
+raw <- read_excel("C:/Github/RR_CELT2016/CELT_Responses.xlsx")
+```
+
 
 Looking at the raw data, we see that the names of the data frame are set
 to the question titles, which makes analysis very difficult to deal with. 

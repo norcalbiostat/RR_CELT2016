@@ -108,8 +108,8 @@
 \begin{itemize}
   \item Understand the importance of teaching reproducible research (RR) to 
         undergraduates early in their career. 
-  \item Walk away with a proof of concept reproducible data analysis document using R and Markdown.
   \item Believe that this is an achievable outcome by undergraduates
+  \item Walk away with a proof of concept reproducible data analysis document using R and Markdown.
   \item Start to think about ways to incorporate RR into your classroom (I can help!!)
 \end{itemize}
 
@@ -215,7 +215,6 @@ You know it's not that straight forward.
 \begin{itemize}
   \item Free (Not a trivial benefit) Gives students a skill they can use outside of school.
   \item It's one of the fastest growing statistical languages used in the Natural Sciences 
-  \item Specifically - automate the analysis into a single document that can be run with a click of a button. 
   \item Everything is user-contributed "package" based. Don't reinvent the weheel, Google it!
 \end{itemize}
 
@@ -227,6 +226,7 @@ You know it's not that straight forward.
 \begin{itemize}
   \item Integrated Development Environment (IDE), not "just" a GUI
   \item Integration of R with LaTeX (this presentation), Markdown, C++,javascript, d3, github.... 
+  \item Specifically - automate the analysis into a single document that can be run with a click of a button. 
   \item Four windows provides organization, syntax highlighting, tab-complete...
   \item More amazing things that make your workflow smoother and more organized. 
 \end{itemize}
@@ -311,6 +311,10 @@ But but... that output looks kinda crappy.
 \vspace{1cm}
 
 At the very least, it's not *that* professional looking. 
+
+\vspace{1cm}
+
+- Draft student reports. 
 
 \end{frame}
 
